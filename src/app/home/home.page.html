@@ -1,20 +1,29 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
+<ion-header>
+  <ion-toolbar color="primary">
     <ion-title>
-      Blank
+      GPS Tracking
     </ion-title>
   </ion-toolbar>
 </ion-header>
-
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
-  </div>
+ 
+<ion-content padding>
+ 
+  <button ion-button full icon-left (click)="startTracking()" *ngIf="!isTracking">
+      <ion-icon name="locate"></ion-icon>
+      Start Tracking
+    </button>
+  <button ion-button full color="danger" icon-left (click)="stopTracking()" *ngIf="isTracking">
+      <ion-icon name="hand"></ion-icon>
+      Stop Tracking
+  </button>
+ 
+  <div #map id="map"></div>
+ 
+  <ion-list>
+    <ion-list-header>Previous Tracks</ion-list-header>
+    <ion-item *ngFor="let route of previousTracks">
+      {{ route.finished | date }}, {{ route.path.length }} Waypoints
+      <button ion-button clear item-end (click)="showHistoryRoute(route.path)">View Route</button>
+    </ion-item>
+  </ion-list>
 </ion-content>
