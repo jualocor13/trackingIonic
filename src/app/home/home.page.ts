@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, OnInit } from '@angular/core';
 import { NavController, Platform } from '@ionic/angular';
 import { Geolocation } from '@ionic-native/geolocation/ngx';
 import { filter } from 'rxjs/operators';
@@ -11,7 +11,7 @@ declare var google;
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
 })
-export class HomePage {
+export class HomePage implements OnInit {
 
 
   @ViewChild('map') mapElement: ElementRef;
@@ -28,9 +28,13 @@ export class HomePage {
     private storage: Storage
   ) { }
 
+  ngOnInit() {
+    this.ionViewDidLoad();
+  }
+
   ionViewDidLoad() {
     this.plt.ready().then(() => {
-      this.loadHistoricRoutes();
+      //this.loadHistoricRoutes();
       let mapOptions = {
         zoom: 13,
         mapTypeId: google.maps.MapTypeId.ROADMAP,
@@ -67,7 +71,7 @@ export class HomePage {
       .subscribe(data => {
         setTimeout(() => {
           this.trackedRoute.push({ lat: data['coords'].latitude, lng: data['coords'].longitude });
-          this.redrawPath(this.trackedRoute);
+          //this.redrawPath(this.trackedRoute);
         }, 0);
       });
 
@@ -76,7 +80,8 @@ export class HomePage {
     if (this.currentMapTrack) {
       this.currentMapTrack.setMap(null);
     }
- 
+
+    console.log(path.length)
     if (path.length > 1) {
       this.currentMapTrack = new google.maps.Polyline({
         path: path,
@@ -91,15 +96,47 @@ export class HomePage {
   stopTracking() {
     let newRoute = { finished: new Date().getTime(), path: this.trackedRoute };
     this.previousTracks.push(newRoute);
-    this.storage.set('routes', this.previousTracks);
+    //this.getKmRoute(this.trackedRoute);
+    //this.storage.set('routes', this.previousTracks);
    
     this.isTracking = false;
     this.positionSubscription.unsubscribe();
-    this.currentMapTrack.setMap(null);
+    this.redrawPath(this.trackedRoute)
+    //this.currentMapTrack.setMap(null);
+
+  }
+  getKmRoute(route) {
+    let result: any;
+    console.log(route);
+    for (let index = 0; index <= route.length - 2; index++) {
+      const firstCoordinate = route[index];
+      const secondCoordinate = route[index + 1];
+      result = result + this.getDistanceFromLatLonInKm(firstCoordinate.lat, firstCoordinate.lng,  secondCoordinate.lat, secondCoordinate.lng);
+      console.log('result ' + result);
+    }
   }
    
   showHistoryRoute(route) {
     this.redrawPath(route);
   }
+  getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
+    var R = 6371; // Radius of the earth in km
+    var dLat = this.deg2rad(lat2-lat1);  // deg2rad below
+    var dLon = this.deg2rad(lon2-lon1); 
+    var a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2)
+      ; 
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    var d = R * c; // Distance in km
+    console.log(d);
+    return d;
+  
+  }
+  deg2rad(deg) {
+    return deg * (Math.PI/180)
+  }
+  
 
 }
